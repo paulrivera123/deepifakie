@@ -9,7 +9,7 @@ export default function App() {
   const [facing, setFacing] = useState<'back' | 'front'>('back');
   
   const [segundos, setSegundos] = useState(0);
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
+const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const cameraRef = useRef<CameraView>(null);
 
   useEffect(() => {
@@ -45,21 +45,25 @@ export default function App() {
     }
   };
 
-  const enviarVideoAlServidor = async (videoUri: string) => {
+const enviarVideoAlServidor = async (videoUri: string) => {
     try {
       console.log("Subiendo video nativamente desde:", videoUri);
+      const urlServidor = 'http://192.168.1.161:8000/procesar-video/'; // MANTÉN TU IP REAL AQUÍ
       
-      const urlServidor = 'http://192.168.1.161:8000/procesar-video/';
+      // Definiendo el segundo exacto donde queremos que la IA empiece a trabajar
+      const segundoDeInicio = "4"; 
 
       const response = await FileSystem.uploadAsync(urlServidor, videoUri, {
         httpMethod: 'POST',
         uploadType: 1 as any,
         fieldName: 'file',
         mimeType: videoUri.toLowerCase().endsWith('.mov') ? 'video/quicktime' : 'video/mp4',
+        // ESTA ES LA LÍNEA NUEVA: El "papelito" con las instrucciones
+        parameters: {
+          inicio: segundoDeInicio 
+        }
       });
-
       console.log("¡Respuesta del servidor!", response.body);
-
     } catch (error) {
       console.error("Error al subir el archivo:", error);
     }
